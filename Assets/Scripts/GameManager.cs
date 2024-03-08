@@ -58,6 +58,7 @@ public class GameManager : MonoBehaviour
         
         GameObject top = Instantiate(Bar, new Vector3(CameraBounds.TOPRIGHT.x - width/2.0f, CameraBounds.TOPRIGHT.y, CameraBounds.TOPRIGHT.z), Quaternion.identity);
         top.transform.localScale = new Vector3(width, top.transform.lossyScale.y, top.transform.lossyScale.z);
+        top.tag = "TopBox";
     }
     
     

@@ -11,16 +11,51 @@ public class Ball : MonoBehaviour
     Vector3 velocity = Vector3.zero;
 
     private Rigidbody body;
+
+    private Collider bodyCol;
+    
+    private MaterialPropertyBlock mpb;
+
+    static readonly int shPropColor = Shader.PropertyToID("_BaseColor");
+    public MaterialPropertyBlock Mpb
+    {
+        get
+        {
+            if (mpb == null)
+            {
+                mpb = new MaterialPropertyBlock();
+            }
+            return mpb;
+        }
+    }
+
+    public GameObject go;
+
+    private MeshRenderer meshRenderer;
     // Start is called before the first frame update
     void Awake()
     {
         body = GetComponent<Rigidbody>();
+        bodyCol = go.GetComponent<Collider>();
+        meshRenderer = go.GetComponent<MeshRenderer>();
         SpawnBall();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        bool isFalling = body.velocity.y < 0.0f;
+    
+        // Only update if there's a change in state
+        if (isFalling != bodyCol.enabled)
+        {
+            bodyCol.enabled = isFalling;
+        
+            // Set the color based on the state
+            Color color = isFalling ? Color.green : Color.red;
+            Mpb.SetColor(shPropColor, color);
+            meshRenderer.SetPropertyBlock(Mpb);
+        }
     }
 
     private void SpawnBall()
@@ -38,8 +73,8 @@ public class Ball : MonoBehaviour
     
     private void OnCollisionEnter(Collision col)
     {
-        Debug.Log(body.velocity);
-        if (col.transform.CompareTag("Paddle") && body.velocity.y > 0)
+        
+        if (col.transform.CompareTag("Paddle"))
         {
             float platSize = (col.transform.localScale.x / 2.0f);
             float hitPos = (transform.position.x - col.transform.position.x);
@@ -53,7 +88,6 @@ public class Ball : MonoBehaviour
             newVel = newVel.normalized * speed;
             // negate force
             //body.velocity = Vector3.zero;
-            
             body.velocity = newVel;
         }
     }
