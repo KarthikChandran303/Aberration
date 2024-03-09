@@ -8,6 +8,8 @@ public class AttackManager : MonoBehaviour
     [SerializeField] private GameObject laser;
 
     [SerializeField] private Attack[] attacks;
+    
+    [SerializeField] private bool phaseOne = true;
     // Start is called before the first frame update
     void Start()
     {
@@ -16,21 +18,32 @@ public class AttackManager : MonoBehaviour
     
     IEnumerator AttackDelay()
     {
-        for (int i = 0; i < attacks.Length; i++)
+        while (phaseOne)
         {
-            Attack currentAttack = attacks[i];
-            yield return new WaitForSeconds(currentAttack.delay);
-            UnpackAttack(currentAttack.attackSettings);
-            for (int j = 0; j < currentAttack.sameTimeAttacks.Length; j++)
+            for (int i = 0; i < attacks.Length; i++)
             {
-                UnpackAttack(currentAttack.sameTimeAttacks[j]);
+                Attack currentAttack = attacks[i];
+                yield return new WaitForSeconds(currentAttack.delay);
+                UnpackAttack(currentAttack.attackSettings);
+                for (int j = 0; j < currentAttack.sameTimeAttacks.Length; j++)
+                {
+                    UnpackAttack(currentAttack.sameTimeAttacks[j]);
+                }
             }
         }
     }
 
     private void UnpackAttack(Attack.AttackSettings attack)
     {
-        Debug.Log(attack.attackType.ToString());
+        if (attack.attackType == Attack.AttackSettings.AttackType.Laser)
+        {
+            float x = CameraBounds.BOTTOMLEFT.x + (CameraBounds.TOPRIGHT.x - CameraBounds.BOTTOMLEFT.x) * attack.spawnLocationX;
+            float y = CameraBounds.BOTTOMLEFT.y + (CameraBounds.TOPRIGHT.y - CameraBounds.BOTTOMLEFT.y) * attack.spawnLocationY;
+            Instantiate(laser, new Vector3(x, y, 30.0f), Quaternion.identity);
+        }
+        {
+            
+        }
     }
 
     [Serializable]
@@ -61,7 +74,10 @@ public class AttackManager : MonoBehaviour
 
             public SpawnLocationSetting spawnLocationSetting;
 
-            public Vector3 spawnLocation;
+            [Range(0,1)]
+            public float spawnLocationX = 0.0f;
+            [Range(0,1)]
+            public float spawnLocationY = 0.0f;
         }
     }
 }
