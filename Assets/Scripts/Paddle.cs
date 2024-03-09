@@ -10,17 +10,19 @@ public class Paddle : MonoBehaviour
 {
     private Rigidbody body;
     
+    float maxSpeed = 8f;
+    
     [SerializeField, Range(0f, 100f)]
-    float maxSpeed = 10f;
+    float normalSpeed = 8f;
+    
+    [SerializeField, Range(0f, 100f)]
+    float spinSpeed = 12f;
 
     [SerializeField] private bool useAcceleration = false;
     
     [SerializeField, Range(0f, 100f)]
     float maxAcceleration = 10f;
     
-    [SerializeField, Range(0f, 10f)]
-    float jumpHeight = 5f;
-
     Vector3 velocity = Vector3.zero;
     Vector2 playerInput;
 
@@ -36,6 +38,7 @@ public class Paddle : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        maxSpeed = normalSpeed;
         body = GetComponent<Rigidbody>();
     }
 
@@ -73,7 +76,12 @@ public class Paddle : MonoBehaviour
 
         if (!isSpinning)
         {
+            maxSpeed = normalSpeed;
             RotateWithMovement();
+        }
+        else
+        {
+            maxSpeed = spinSpeed;
         }
 
         body.velocity = velocity;
@@ -100,6 +108,7 @@ public class Paddle : MonoBehaviour
                 .DORotate(new Vector3(0, 0, -367.5f * Mathf.Sign(body.velocity.x)), 0.4f, RotateMode.FastBeyond360)
                 .SetRelative(true)
                 .SetEase(Ease.Linear));
+            maxSpeed = spinSpeed;
             // seq.Append(body
             //     .DORotate(new Vector3(0, 0, 30 * Mathf.Sign(body.velocity.x)), 0.15f, RotateMode.FastBeyond360)
             //     .SetRelative(true)
@@ -109,7 +118,6 @@ public class Paddle : MonoBehaviour
             //     .SetRelative(true)
             //     .SetEase(Ease.Linear));
         }
-
         spin = false;
     }
 
