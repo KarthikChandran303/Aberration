@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class AttackManager : MonoBehaviour
 {
@@ -10,6 +11,14 @@ public class AttackManager : MonoBehaviour
     [SerializeField] private Attack[] attacks;
     
     [SerializeField] private bool phaseOne = true;
+
+    private IObjectPool<GameObject> laserPool;
+
+    private void Awake()
+    {
+        laserPool = new ObjectPool<GameObject>()
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -77,7 +86,7 @@ public class AttackManager : MonoBehaviour
             [Range(0,1)]
             public float spawnLocationX = 0.0f;
             [Range(0,1)]
-            public float spawnLocationY = 0.0f;
+            public float spawnLocationY = 0.5f;
         }
     }
 }
