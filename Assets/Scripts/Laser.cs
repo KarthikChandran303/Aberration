@@ -12,12 +12,23 @@ public class Laser : MonoBehaviour
     {
         set => laserPool = value;
     }
+
+    private MeshRenderer mr;
+    private Material mat;
+    
+    static readonly int shPropTime = Shader.PropertyToID("_StartTime");
     
     Vector3 velocity;
-    // Start is called before the first frame update
+
+    void Awake()
+    {
+        mat = GetComponent<MeshRenderer>().material;
+    }
     void OnEnable()
     {
         velocity = new Vector3(0, 0, -1);
+        
+        mat.SetFloat(shPropTime, Time.time);
     }
 
     // Update is called once per frame
