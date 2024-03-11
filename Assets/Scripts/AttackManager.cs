@@ -12,13 +12,17 @@ public class AttackManager : MonoBehaviour
     
     [SerializeField] private bool phaseOne = true;
 
+    [SerializeField] private Transform laserParent;
+
     private IObjectPool<GameObject> laserPool;
+    private int defaultCapacity = 15;
+    private int maxSize = 30;
 
     private void Awake()
     {
-        laserPool = new ObjectPool<GameObject>()
+        laserPool = new ObjectPool<GameObject>(CreateLaser, OnGetFromPool, OnReleaseToPool, OnDestroyPooledObject, true, defaultCapacity, maxSize);
     }
-
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -41,6 +45,28 @@ public class AttackManager : MonoBehaviour
             }
         }
     }
+    
+    GameObject CreateLaser()
+    {
+        GameObject go = Instantiate(laser, laserParent);
+        go.GetComponent<Laser>().LaserPool = laserPool;
+        return go;
+    }
+
+    private void OnGetFromPool( GameObject newPoolLaser )
+    {
+        newPoolLaser.gameObject.SetActive(true);
+    }
+    
+    private void OnReleaseToPool( GameObject releasePoolLaser )
+    {
+        releasePoolLaser.gameObject.SetActive(false);
+    }
+
+    private void OnDestroyPooledObject( GameObject destroyPoolLaser )
+    {
+        Destroy( destroyPoolLaser );
+    }
 
     private void UnpackAttack(Attack.AttackSettings attack)
     {
@@ -48,10 +74,15 @@ public class AttackManager : MonoBehaviour
         {
             float x = CameraBounds.BOTTOMLEFT.x + (CameraBounds.TOPRIGHT.x - CameraBounds.BOTTOMLEFT.x) * attack.spawnLocationX;
             float y = CameraBounds.BOTTOMLEFT.y + (CameraBounds.TOPRIGHT.y - CameraBounds.BOTTOMLEFT.y) * attack.spawnLocationY;
-            Instantiate(laser, new Vector3(x, y, 30.0f), Quaternion.identity);
-        }
-        {
-            
+            GameObject newLaser = laserPool.Get();
+            if (newLaser == null)
+            {
+                return;
+            }
+
+            newLaser.transform.position = new Vector3(x, y, 15.0f);
+            newLaser.GetComponent<Laser>().speed = attack.speed;
+            newLaser.GetComponent<Laser>().Deactivate(3.0f);
         }
     }
 
@@ -87,6 +118,8 @@ public class AttackManager : MonoBehaviour
             public float spawnLocationX = 0.0f;
             [Range(0,1)]
             public float spawnLocationY = 0.5f;
+
+            public float speed = 30.0f;
         }
     }
 }

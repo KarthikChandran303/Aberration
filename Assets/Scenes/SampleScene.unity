@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748171, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657868, g: 0.4964124, b: 0.574817, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -437,6 +437,37 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+--- !u!1 &721475281
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 721475282}
+  m_Layer: 0
+  m_Name: Lasers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &721475282
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 721475281}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &885407494
 GameObject:
   m_ObjectHideFlags: 0
@@ -887,17 +918,68 @@ MonoBehaviour:
     attackSettings:
       attackType: 0
       spawnLocationSetting: 0
-      spawnLocationX: 0.106
+      spawnLocationX: 0.1
       spawnLocationY: 0.5
-    sameTimeAttacks: []
+      speed: 20
+    sameTimeAttacks:
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.2
+      spawnLocationY: 0.5
+      speed: 30
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.3
+      spawnLocationY: 0.5
+      speed: 30
   - delay: 1.5
     attackSettings:
       attackType: 0
       spawnLocationSetting: 0
-      spawnLocationX: 0.797
+      spawnLocationX: 0.8
       spawnLocationY: 0.5
-    sameTimeAttacks: []
+      speed: 30
+    sameTimeAttacks:
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.7
+      spawnLocationY: 0.5
+      speed: 30
+  - delay: 1.5
+    attackSettings:
+      attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.9
+      spawnLocationY: 0.5
+      speed: 30
+    sameTimeAttacks:
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.8
+      spawnLocationY: 0.5
+      speed: 30
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.7
+      spawnLocationY: 0.5
+      speed: 30
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.1
+      spawnLocationY: 0.5
+      speed: 30
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.2
+      spawnLocationY: 0.5
+      speed: 30
+    - attackType: 0
+      spawnLocationSetting: 0
+      spawnLocationX: 0.3
+      spawnLocationY: 0.5
+      speed: 30
   phaseOne: 1
+  laserParent: {fileID: 721475282}
 --- !u!4 &1414664201
 Transform:
   m_ObjectHideFlags: 0
@@ -970,8 +1052,16 @@ PrefabInstance:
       value: Laser
       objectReference: {fileID: 0}
     - target: {fileID: 3266072331614671770, guid: 63d1c7105ac9f15419c3d0a0c71b0e61, type: 3}
-      propertyPath: m_IsActive
+      propertyPath: m_Layer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3266072331614671770, guid: 63d1c7105ac9f15419c3d0a0c71b0e61, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6906023596479442254, guid: 63d1c7105ac9f15419c3d0a0c71b0e61, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -990,3 +1080,4 @@ SceneRoots:
   - {fileID: 6253106148088695084}
   - {fileID: 656087849}
   - {fileID: 1414664201}
+  - {fileID: 721475282}

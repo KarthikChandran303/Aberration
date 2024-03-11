@@ -5,22 +5,35 @@ using UnityEngine.Pool;
 
 public class Laser : MonoBehaviour
 {
+    public float speed = 30.0f;
+    
+    private IObjectPool<GameObject> laserPool;
+    public IObjectPool<GameObject> LaserPool
+    {
+        set => laserPool = value;
+    }
+    
     Vector3 velocity;
     // Start is called before the first frame update
     void OnEnable()
     {
-        velocity = new Vector3(0, 0, -35.0f);
-        // rotate 90 degrees
-        transform.Rotate(0, 90, 0);
+        velocity = new Vector3(0, 0, -1);
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.position += velocity * Time.deltaTime;
+        transform.position += velocity * (speed * Time.deltaTime);
     }
 
-    IEnumerator DeactivateRoutine()
+    public void Deactivate(float delay)
     {
+        StartCoroutine(DeactivateRoutine(delay));
+    }
+    
+    private IEnumerator DeactivateRoutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        laserPool.Release(gameObject);
     }
 }
