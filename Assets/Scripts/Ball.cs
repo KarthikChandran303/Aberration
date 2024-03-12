@@ -16,7 +16,8 @@ public class Ball : MonoBehaviour
     
     private MaterialPropertyBlock mpb;
 
-    static readonly int shPropColor = Shader.PropertyToID("_BaseColor");
+    static readonly int shPropCollidable = Shader.PropertyToID("_Collidable");
+    static readonly int shPropFade = Shader.PropertyToID("_BeginFadeTime");
 
     private bool colliderEnabled = true;
     public MaterialPropertyBlock Mpb
@@ -55,7 +56,8 @@ public class Ball : MonoBehaviour
             Physics.IgnoreLayerCollision(6, 7, !colliderEnabled);
             // Set the color based on the state
             Color color = isFalling ? Color.green : Color.red;
-            Mpb.SetColor(shPropColor, color);
+            Mpb.SetInt(shPropCollidable, colliderEnabled ? 1 : 0);
+            Mpb.SetFloat(shPropFade, Time.time);
             meshRenderer.SetPropertyBlock(Mpb);
         }
     }
