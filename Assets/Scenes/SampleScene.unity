@@ -764,8 +764,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb6db095f56843778809607ce12e7a2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalSpeed: 8
-  spinSpeed: 14
+  normalSpeed: 10
+  spinSpeed: 16
   useAcceleration: 0
   maxAcceleration: 10
   isSpinning: 0

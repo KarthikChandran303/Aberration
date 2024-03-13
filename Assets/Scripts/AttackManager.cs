@@ -80,7 +80,7 @@ public class AttackManager : MonoBehaviour
                 return;
             }
 
-            newLaser.transform.position = new Vector3(x, y, 15.0f);
+            newLaser.transform.position = new Vector3(x, y, 35.0f);
             newLaser.GetComponent<Laser>().speed = attack.speed;
             newLaser.GetComponent<Laser>().Deactivate(3.0f);
         }
