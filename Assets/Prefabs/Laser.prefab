@@ -122,3 +122,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 30
+  paddlePiece: {fileID: 1487127319851746356, guid: 30e6e624454eb08408c3a4bdd5f51218, type: 3}

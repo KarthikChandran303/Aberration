@@ -7,6 +7,9 @@ public class Laser : MonoBehaviour
 {
     public float speed = 30.0f;
     
+    [SerializeField]
+    private GameObject paddlePiece;
+    
     private IObjectPool<GameObject> laserPool;
     public IObjectPool<GameObject> LaserPool
     {
@@ -46,5 +49,28 @@ public class Laser : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         laserPool.Release(gameObject);
+    }
+    
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Paddle"))
+        {
+            // get collision point
+            Vector3 hitPoint = other.ClosestPointOnBounds(transform.position);
+            
+            // random rotation
+            Quaternion rot = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+
+            GameObject piece = Instantiate(paddlePiece, hitPoint, rot);
+            Vector3 dir = (Camera.main.transform.position - hitPoint).normalized;
+            dir.y = 0.80f;
+            dir = dir * 8.0f;
+            piece.GetComponent<Rigidbody>().AddForce(dir, ForceMode.Impulse);
+            piece.GetComponent<Rigidbody>().AddTorque(Random.insideUnitSphere * 20.0f, ForceMode.Impulse);
+            
+            //GameObject paddleParent = other.transform.parent.gameObject;
+            // move paddle parent to bounds of child
+            //paddleParent.transform.position = new Vector3(hitPoint.x, paddleParent.transform.position.y, hitPoint.z);
+        }
     }
 }

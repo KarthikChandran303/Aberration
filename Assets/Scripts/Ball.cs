@@ -75,7 +75,7 @@ public class Ball : MonoBehaviour
         body.velocity = new Vector3(Random.Range(-1.0f, 1.0f), Random.Range(0.2f, 1.0f), 0.0f).normalized * speed;
     }
     
-    // This function is called after collison physics are applied. So a rigidbody's velocity may not turn out to be as expected.
+    // This function is called after collison physics are applied. So a rigidbody's (if sent in as a parameter) velocity may not turn out to be as expected.
     private void OnCollisionEnter(Collision col)
     {
         
