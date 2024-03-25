@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -75,6 +76,18 @@ public class Ball : MonoBehaviour
         body.velocity = new Vector3(Random.Range(-1.0f, 1.0f), Random.Range(0.2f, 1.0f), 0.0f).normalized * speed;
     }
     
+    IEnumerator HitStop(float duration = 0.1f)
+    {
+        Time.timeScale = 0.15f;
+        float realTimeAtStop = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup < realTimeAtStop + duration)
+        {
+            yield return null;
+        }
+        Time.timeScale = 1.0f;
+    }
+
+    
     // This function is called after collison physics are applied. So a rigidbody's (if sent in as a parameter) velocity may not turn out to be as expected.
     private void OnCollisionEnter(Collision col)
     {
@@ -99,6 +112,11 @@ public class Ball : MonoBehaviour
                 newVel = newVel.normalized * speed;
             }
             body.velocity = newVel;
+            if (col.transform.GetComponent<Paddle>().isSpinning)
+            {
+                Camera.main.DOShakePosition(0.075f, new Vector3(0.0f, 0.2f, 0.0f), 50, 0.0f, false);
+                StartCoroutine(HitStop(0.075f));
+            }
         }
 
         if (col.transform.CompareTag("TopBox"))

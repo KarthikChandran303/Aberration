@@ -5,6 +5,7 @@ using UnityEngine;
 using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
+using UnityEngine.InputSystem;
 
 public class Paddle : MonoBehaviour
 {
@@ -57,7 +58,7 @@ public class Paddle : MonoBehaviour
         axis.y = Mathf.Lerp( axis.y, playerInput.y, Snappiness * Time.deltaTime);
         
         playerInput = Vector2.ClampMagnitude(axis, 1f);
-        spin |= Input.GetKeyDown(KeyCode.L);
+        spin |= (Input.GetKeyDown(KeyCode.L) || Gamepad.current.buttonSouth.wasPressedThisFrame);
 
         lastUpdatePos = transform.position;
         parent.position = lastUpdatePos;
