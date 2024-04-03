@@ -39,12 +39,14 @@ public class Paddle : MonoBehaviour
 
     private Transform parent;
     private Vector3 lastUpdatePos;
+
+    private bool gamePadSpinButton = false;
     // Start is called before the first frame update
     void Awake()
     {
         maxSpeed = normalSpeed;
         body = GetComponent<Rigidbody>();
-        parent = transform.parent;
+        //parent = transform.parent;
     }
 
     // Update is called once per frame
@@ -58,19 +60,26 @@ public class Paddle : MonoBehaviour
         axis.y = Mathf.Lerp( axis.y, playerInput.y, Snappiness * Time.deltaTime);
         
         playerInput = Vector2.ClampMagnitude(axis, 1f);
-        spin |= (Input.GetKeyDown(KeyCode.L) || Gamepad.current.buttonSouth.wasPressedThisFrame);
+
+        if (Gamepad.current != null)
+        {
+            gamePadSpinButton = Gamepad.current.buttonSouth.wasPressedThisFrame;
+        }
+
+        
+        spin |= (Input.GetKeyDown(KeyCode.L) || gamePadSpinButton);
 
         lastUpdatePos = transform.position;
-        parent.position = lastUpdatePos;
+        //parent.position = lastUpdatePos;
         //transform.position += new Vector3(playerInput.x, playerInput.y, 0) * (Time.deltaTime * maxSpeed);
         // Bitwise OR (|) compares each bit of the two operands and produces a result where each bit of the output is set to 1 if at least one of the corresponding bits of the input operands is 1.
         //playerJump |= Input.GetButtonDown("Jump");    
     }
 
-    private void LateUpdate()
-    {
-        transform.position = lastUpdatePos;
-    }
+    // private void LateUpdate()
+    // {
+    //     transform.position = lastUpdatePos;
+    // }
 
     private void FixedUpdate()
     {
