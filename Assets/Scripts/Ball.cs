@@ -114,8 +114,8 @@ public class Ball : MonoBehaviour
             body.velocity = newVel;
             if (col.transform.GetComponent<Paddle>().isSpinning)
             {
-                Camera.main.DOShakePosition(0.075f, new Vector3(0.0f, 0.2f, 0.0f), 50, 0.0f, false);
-                StartCoroutine(HitStop(0.075f));
+                Camera.main.DOShakePosition(GameManager.instance.BallPaddleCollision, new Vector3(0.0f, 0.2f, 0.0f), 50, 0.0f, false);
+                StartCoroutine(HitStop(GameManager.instance.BallPaddleCollision));
             }
         }
 

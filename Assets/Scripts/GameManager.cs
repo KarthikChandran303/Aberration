@@ -15,6 +15,9 @@ public class GameManager : MonoBehaviour
     
     [SerializeField] private GameObject Bar;
 
+    [Header("Hit Stop Settings")]
+    public float BallPaddleCollision = 0.075f;
+
     private void Awake()
     {
         if(instance == null)
