@@ -9,6 +9,8 @@ using UnityEngine.InputSystem;
 
 public class Paddle : MonoBehaviour
 {
+    [SerializeField] private GameObject test;
+    
     private Rigidbody body;
     
     float maxSpeed = 8f;
@@ -28,30 +30,48 @@ public class Paddle : MonoBehaviour
     Vector2 playerInput;
 
     private TweenerCore<Quaternion, Vector3, QuaternionOptions> spinTween;
-    private Sequence seq;
+    public Sequence spinSequence;
+    public Sequence testSeqSpin;
 
     private bool spin = false;
 
+    private bool space = false;
+    
     public bool isSpinning = false;
     
     private Vector2 axis; 
     public float Snappiness = 3.0f;
 
-    private Transform parent;
-    private Vector3 lastUpdatePos;
-
     private bool gamePadSpinButton = false;
+
+    private float collisionVelocityRatio = 1.0f;
     // Start is called before the first frame update
     void Awake()
     {
         maxSpeed = normalSpeed;
         body = GetComponent<Rigidbody>();
+        //var s = DOTween.Sequence(test.transform.GetComponent<Rigidbody>().DORotate(new Vector3(0.0f, 0.0f, 180.0f), 2.0f, RotateMode.Fast).SetLoops(-1).SetDelay(2.0f).SetUpdate(false));
+        //s.Goto(1.0f);
         //parent = transform.parent;
+    }
+
+    private void Start()
+    {
+        testSeqSpin = DOTween.Sequence().Append(body.DORotate(new Vector3(0.0f, 0.0f, 280.0f), 1.0f));
+        //testSeq.SetAutoKill(false);
+        testSeqSpin.Pause();
+        testSeqSpin.onComplete = () =>
+        {
+            space = false;
+            testSeqSpin.Rewind();
+        };
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log("RX:" + transform.localRotation.x + "RY:" + transform.localRotation.y + "RZ:" + transform.localRotation.z);
+        //Debug.Log(collisionVelocityRatio);
         playerInput.x = Input.GetAxisRaw("Horizontal");
         playerInput.y = Input.GetAxisRaw("Vertical");
         
@@ -66,10 +86,10 @@ public class Paddle : MonoBehaviour
             gamePadSpinButton = Gamepad.current.buttonSouth.wasPressedThisFrame;
         }
 
-        
+        // | checks if spin has been consumed
         spin |= (Input.GetKeyDown(KeyCode.L) || gamePadSpinButton);
 
-        lastUpdatePos = transform.position;
+        space |= (Input.GetKeyDown(KeyCode.Space));
         //parent.position = lastUpdatePos;
         //transform.position += new Vector3(playerInput.x, playerInput.y, 0) * (Time.deltaTime * maxSpeed);
         // Bitwise OR (|) compares each bit of the two operands and produces a result where each bit of the output is set to 1 if at least one of the corresponding bits of the input operands is 1.
@@ -90,9 +110,9 @@ public class Paddle : MonoBehaviour
             Spin();
         }
 
-        if (seq != null)
+        if (spinSequence != null)
         {
-            isSpinning = seq.active;
+            isSpinning = spinSequence.active;
         }
 
         if (!isSpinning)
@@ -104,31 +124,40 @@ public class Paddle : MonoBehaviour
         {
             maxSpeed = spinSpeed;
         }
-
-        body.velocity = velocity;
+        
+        
+        body.velocity = Vector3.Lerp(body.velocity, velocity, collisionVelocityRatio);
+        //body.velocity = body.velocity;
     }
 
     void RotateWithMovement()
     {
         if (Math.Abs(playerInput.x) < 0.3f)
         {
-            body.DORotate(new Vector3(0, 0, 0), 0.175f, RotateMode.Fast);
+            body.DORotate(new Vector3(0, 0, 0), 0.7f, RotateMode.Fast);
         }
         else
         {
             body.DORotate(new Vector3(0, 0, -7.5f * Mathf.Sign(body.velocity.x)), 0.175f, RotateMode.Fast);
         }
-        
     }
 
     void Spin()
     {
-        if (seq == null || !seq.active)
+        if (spinSequence == null || !spinSequence.active)
         {
-            seq = DOTween.Sequence().Append(body
-                .DORotate(new Vector3(0, 0, -367.5f * Mathf.Sign(body.velocity.x)), 0.4f, RotateMode.FastBeyond360)
+            
+            spinSequence = DOTween.Sequence().Append(body
+                .DORotate(new Vector3(0, 0, -(367.5f) * Mathf.Sign(body.velocity.x)),
+                    GameManager.instance.RotationAnimationDuration, RotateMode.FastBeyond360)
                 .SetRelative(true)
                 .SetEase(Ease.Linear));
+            spinSequence.onComplete = () =>
+            {
+                spin = false;
+                Debug.Log("DoneSpin");
+            };
+            //spinSequence.SetUpdate(UpdateType.Fixed, true);
             maxSpeed = spinSpeed;
             // seq.Append(body
             //     .DORotate(new Vector3(0, 0, 30 * Mathf.Sign(body.velocity.x)), 0.15f, RotateMode.FastBeyond360)
@@ -139,9 +168,18 @@ public class Paddle : MonoBehaviour
             //     .SetRelative(true)
             //     .SetEase(Ease.Linear));
         }
-        spin = false;
     }
-
+    
+    void TestSpin()
+    {
+        
+        if (!testSeqSpin.IsPlaying())
+        {
+            Debug.Log("hey");
+            testSeqSpin.Play();
+        }
+    }
+    
     void Move(Vector2 playerInput)
     {
         Vector3 desiredVelocity = new Vector3(playerInput.x, playerInput.y, 0) * maxSpeed;
@@ -155,6 +193,23 @@ public class Paddle : MonoBehaviour
         {
             velocity.x = desiredVelocity.x;
             velocity.y = desiredVelocity.y;
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform.CompareTag("BottomBox"))
+        {
+            Debug.Log("poki");
+            var test = DOTween.Sequence(DOTween.To(() =>
+                {
+                    return collisionVelocityRatio = 0.0f;
+                }, x => collisionVelocityRatio = x, 1.0f, 1.5f).onComplete =
+                () => collisionVelocityRatio = 1.0f);
+            //test.onUpdate = () => { Debug.Log(collisionVelocityRatio); };
+            float ratio = Mathf.InverseLerp(0.0f, maxSpeed, body.velocity.magnitude);
+            //body.velocity = new Vector3(-collision.relativeVelocity.normalized.x, 1.0f, 0.0f).normalized * maxSpeed * 5.0f;
+            //body.AddForce(new Vector3(0.0f, 15.0f, 0.0f), ForceMode.VelocityChange);
         }
     }
 }

@@ -1792,7 +1792,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Opacity",
     "m_StageCapability": 3,
-    "m_Value": 1.0,
+    "m_Value": 1.3600000143051148,
     "m_DefaultValue": 1.0,
     "m_Labels": []
 }

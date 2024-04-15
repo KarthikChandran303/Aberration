@@ -21,6 +21,8 @@ public class Ball : MonoBehaviour
     static readonly int shPropFade = Shader.PropertyToID("_BeginFadeTime");
 
     private bool colliderEnabled = true;
+
+    private bool skipped = false;
     public MaterialPropertyBlock Mpb
     {
         get
@@ -56,7 +58,7 @@ public class Ball : MonoBehaviour
             colliderEnabled = isFalling;
             Physics.IgnoreLayerCollision(6, 7, !colliderEnabled);
             // Set the color based on the state
-            Color color = isFalling ? Color.green : Color.red;
+            //Color color = isFalling ? Color.green : Color.red;
             Mpb.SetInt(shPropCollidable, colliderEnabled ? 1 : 0);
             Mpb.SetFloat(shPropFade, Time.time);
             meshRenderer.SetPropertyBlock(Mpb);
@@ -76,14 +78,38 @@ public class Ball : MonoBehaviour
         body.velocity = new Vector3(Random.Range(-1.0f, 1.0f), Random.Range(0.2f, 1.0f), 0.0f).normalized * speed;
     }
     
-    IEnumerator HitStop(float duration = 0.1f)
+    IEnumerator HitStop(float duration = 0.1f, GameObject paddle = null)
     {
-        Time.timeScale = 0.15f;
+        Time.timeScale = 0.0f;
         float realTimeAtStop = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup < realTimeAtStop + (duration/4.0f))
+        {
+            yield return null;
+        }
+
+        Rigidbody paddleRB = null;
+        if (paddle != null)
+        {
+            Sequence spinSeq = paddle.GetComponent<Paddle>().spinSequence;
+            if (spinSeq.IsActive())
+            {
+                float skip = 0.05f;
+                if (spinSeq.position + skip < spinSeq.Duration())
+                {
+                    spinSeq.Goto(spinSeq.position + skip, true);
+                    Time.timeScale = 1.0f;
+                    // use this because the spin sequence is done in fixed update. spinSeq.goto will be consumed only next fixed update 
+                    yield return new WaitForFixedUpdate();
+                }
+            }
+        }
+        Time.timeScale = 0.0f;
         while (Time.realtimeSinceStartup < realTimeAtStop + duration)
         {
             yield return null;
         }
+
+        skipped = false;
         Time.timeScale = 1.0f;
     }
 
@@ -115,7 +141,7 @@ public class Ball : MonoBehaviour
             if (col.transform.GetComponent<Paddle>().isSpinning)
             {
                 Camera.main.DOShakePosition(GameManager.instance.BallPaddleCollision, new Vector3(0.0f, 0.2f, 0.0f), 50, 0.0f, false);
-                StartCoroutine(HitStop(GameManager.instance.BallPaddleCollision));
+                StartCoroutine(HitStop(GameManager.instance.BallPaddleCollision, col.gameObject));
             }
         }
 
