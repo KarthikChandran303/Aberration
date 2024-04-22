@@ -15,7 +15,9 @@ public class GameManager : MonoBehaviour
     
     [SerializeField] private GameObject Bar;
 
-    [Header("Player Settings")] public float RotationAnimationDuration = 0.4f;   
+    [Header("Player Settings")] public float RotationAnimationDuration = 0.4f;
+    public float CollisionFeedbackDuration = 1.5f;
+    public float CollisionChangeVelocity = 15.0f;
     
     [Header("Hit Stop Settings")]
     public float BallPaddleCollision = 0.075f;

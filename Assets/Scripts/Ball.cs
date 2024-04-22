@@ -21,8 +21,7 @@ public class Ball : MonoBehaviour
     static readonly int shPropFade = Shader.PropertyToID("_BeginFadeTime");
 
     private bool colliderEnabled = true;
-
-    private bool skipped = false;
+    
     public MaterialPropertyBlock Mpb
     {
         get
@@ -86,8 +85,7 @@ public class Ball : MonoBehaviour
         {
             yield return null;
         }
-
-        Rigidbody paddleRB = null;
+        Vector3 tempVel = Vector3.zero;
         if (paddle != null)
         {
             Sequence spinSeq = paddle.GetComponent<Paddle>().spinSequence;
@@ -108,8 +106,7 @@ public class Ball : MonoBehaviour
         {
             yield return null;
         }
-
-        skipped = false;
+        
         Time.timeScale = 1.0f;
     }
 

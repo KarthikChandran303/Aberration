@@ -5,7 +5,10 @@ using UnityEngine;
 using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
+using Unity.VisualScripting;
 using UnityEngine.InputSystem;
+using Random = UnityEngine.Random;
+using Sequence = DG.Tweening.Sequence;
 
 public class Paddle : MonoBehaviour
 {
@@ -45,33 +48,38 @@ public class Paddle : MonoBehaviour
     private bool gamePadSpinButton = false;
 
     private float collisionVelocityRatio = 1.0f;
-    // Start is called before the first frame update
+
+    private float direction = 1.0f;
+
+    public enum States
+    {
+        Idle,
+        MovingRight,
+        MovingLeft,
+        Spinning,
+        Reflecting,
+        Completed
+    };
+
+    public States CurrentState;
+    
+    private bool transitionState = false;
+
+    public Sequence StateSequence;
     void Awake()
     {
         maxSpeed = normalSpeed;
         body = GetComponent<Rigidbody>();
-        //var s = DOTween.Sequence(test.transform.GetComponent<Rigidbody>().DORotate(new Vector3(0.0f, 0.0f, 180.0f), 2.0f, RotateMode.Fast).SetLoops(-1).SetDelay(2.0f).SetUpdate(false));
-        //s.Goto(1.0f);
-        //parent = transform.parent;
     }
 
     private void Start()
     {
-        testSeqSpin = DOTween.Sequence().Append(body.DORotate(new Vector3(0.0f, 0.0f, 280.0f), 1.0f));
-        //testSeq.SetAutoKill(false);
-        testSeqSpin.Pause();
-        testSeqSpin.onComplete = () =>
-        {
-            space = false;
-            testSeqSpin.Rewind();
-        };
+        CurrentState = States.Idle;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log("RX:" + transform.localRotation.x + "RY:" + transform.localRotation.y + "RZ:" + transform.localRotation.z);
-        //Debug.Log(collisionVelocityRatio);
         playerInput.x = Input.GetAxisRaw("Horizontal");
         playerInput.y = Input.GetAxisRaw("Vertical");
         
@@ -96,26 +104,17 @@ public class Paddle : MonoBehaviour
         //playerJump |= Input.GetButtonDown("Jump");    
     }
 
-    // private void LateUpdate()
-    // {
-    //     transform.position = lastUpdatePos;
-    // }
-
     private void FixedUpdate()
     {
         velocity = body.velocity;
         Move(playerInput);
+        
         if (spin)
         {
             Spin();
         }
-
-        if (spinSequence != null)
-        {
-            isSpinning = spinSequence.active;
-        }
-
-        if (!isSpinning)
+        
+        if (CurrentState != States.Spinning)
         {
             maxSpeed = normalSpeed;
             RotateWithMovement();
@@ -124,62 +123,115 @@ public class Paddle : MonoBehaviour
         {
             maxSpeed = spinSpeed;
         }
+
+        isSpinning = (CurrentState == States.Spinning);
         
-        
-        body.velocity = Vector3.Lerp(body.velocity, velocity, collisionVelocityRatio);
+        if (transitionState)
+        {
+            StateAnimator();
+        }
+
+        float finalVelocityX = Mathf.Lerp(body.velocity.x, velocity.x, collisionVelocityRatio);
+        body.velocity = new Vector3(finalVelocityX, velocity.y, velocity.z);
         //body.velocity = body.velocity;
+    }
+
+    void StateAnimator()
+    {
+        StateSequence.Kill();
+        StateSequence = SelectAnimation(CurrentState);
+
+        transitionState = false;
+    }
+
+    Sequence SelectAnimation(States SelectState)
+    {
+        switch (SelectState)
+        {
+            case States.Idle:
+                return DOTween.Sequence().Append(body.DORotate(new Vector3(0, 0, 0), 0.175f, RotateMode.Fast));
+            case States.MovingRight:
+                return DOTween.Sequence().Append(body.DORotate(new Vector3(0, 0, -7.5f), 0.175f, RotateMode.Fast));
+            case States.MovingLeft:
+                return DOTween.Sequence().Append(body.DORotate(new Vector3(0, 0, 7.5f), 0.175f, RotateMode.Fast));
+            case States.Spinning:
+                spinSequence = DOTween.Sequence().Append(body
+                    .DORotate(new Vector3(0, 0, -(367.5f) * direction),
+                        GameManager.instance.RotationAnimationDuration, RotateMode.FastBeyond360)
+                    .SetRelative(true)
+                    .SetEase(Ease.Linear));
+                spinSequence.onComplete = () =>
+                {
+                    Debug.Log("SpinComp");
+                    spin = false;
+                    SetState(States.Completed);
+                };
+                spinSequence.onRewind = () =>
+                {
+                    Debug.Log("SpinComp");
+                    spin = false;
+                    SetState(States.Completed);
+                };
+                return spinSequence;
+            case States.Reflecting:
+                var reflect = DOTween.Sequence().Append(body
+                    .DORotate(new Vector3(0, 0, -(367.5f) * direction * -1),
+                        GameManager.instance.RotationAnimationDuration, RotateMode.FastBeyond360)
+                    .SetRelative(true)
+                    .SetEase(Ease.Linear));
+                reflect.onComplete = () =>
+                {
+                    Debug.Log("SpinComp");
+                    spin = false;
+                    SetState(States.Completed);
+                };
+                return reflect;
+            default:
+                return null;
+        }
+    }
+    void SetState(States newState)
+    {
+        CurrentState = newState;
+        transitionState = true;
     }
 
     void RotateWithMovement()
     {
         if (Math.Abs(playerInput.x) < 0.3f)
         {
-            body.DORotate(new Vector3(0, 0, 0), 0.7f, RotateMode.Fast);
+            if (CurrentState != States.Idle)
+            {
+                SetState(States.Idle);
+            }
+        }
+        else if( Mathf.Sign(body.velocity.x) > 0.0f )
+        {
+            if (CurrentState != States.MovingRight)
+            {
+                SetState(States.MovingRight);
+                direction = 1.0f;
+            }
         }
         else
         {
-            body.DORotate(new Vector3(0, 0, -7.5f * Mathf.Sign(body.velocity.x)), 0.175f, RotateMode.Fast);
+            if (CurrentState != States.MovingLeft)
+            {
+                SetState(States.MovingLeft);
+                direction = -1.0f;
+            }
         }
     }
 
     void Spin()
     {
-        if (spinSequence == null || !spinSequence.active)
+        if (CurrentState != States.Spinning)
         {
-            
-            spinSequence = DOTween.Sequence().Append(body
-                .DORotate(new Vector3(0, 0, -(367.5f) * Mathf.Sign(body.velocity.x)),
-                    GameManager.instance.RotationAnimationDuration, RotateMode.FastBeyond360)
-                .SetRelative(true)
-                .SetEase(Ease.Linear));
-            spinSequence.onComplete = () =>
-            {
-                spin = false;
-                Debug.Log("DoneSpin");
-            };
-            //spinSequence.SetUpdate(UpdateType.Fixed, true);
-            maxSpeed = spinSpeed;
-            // seq.Append(body
-            //     .DORotate(new Vector3(0, 0, 30 * Mathf.Sign(body.velocity.x)), 0.15f, RotateMode.FastBeyond360)
-            //     .SetRelative(true)
-            //     .SetEase(Ease.Linear));
-            // seq.Append(body
-            //     .DORotate(new Vector3(0, 0, -10 * Mathf.Sign(body.velocity.x)), 0.075f, RotateMode.FastBeyond360)
-            //     .SetRelative(true)
-            //     .SetEase(Ease.Linear));
+            SetState(States.Spinning);
         }
+        maxSpeed = spinSpeed;
     }
-    
-    void TestSpin()
-    {
-        
-        if (!testSeqSpin.IsPlaying())
-        {
-            Debug.Log("hey");
-            testSeqSpin.Play();
-        }
-    }
-    
+
     void Move(Vector2 playerInput)
     {
         Vector3 desiredVelocity = new Vector3(playerInput.x, playerInput.y, 0) * maxSpeed;
@@ -198,18 +250,27 @@ public class Paddle : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.CompareTag("BottomBox"))
+        if (collision.transform.CompareTag("LeftBox") && direction < 0)
         {
-            Debug.Log("poki");
-            var test = DOTween.Sequence(DOTween.To(() =>
+            DOTween.Sequence(DOTween.To(() =>
                 {
                     return collisionVelocityRatio = 0.0f;
-                }, x => collisionVelocityRatio = x, 1.0f, 1.5f).onComplete =
+                }, x => collisionVelocityRatio = x, 1.0f, GameManager.instance.CollisionFeedbackDuration).onComplete =
                 () => collisionVelocityRatio = 1.0f);
             //test.onUpdate = () => { Debug.Log(collisionVelocityRatio); };
             float ratio = Mathf.InverseLerp(0.0f, maxSpeed, body.velocity.magnitude);
-            //body.velocity = new Vector3(-collision.relativeVelocity.normalized.x, 1.0f, 0.0f).normalized * maxSpeed * 5.0f;
-            //body.AddForce(new Vector3(0.0f, 15.0f, 0.0f), ForceMode.VelocityChange);
+            body.AddForce(new Vector3(GameManager.instance.CollisionChangeVelocity, 0.0f, 0.0f), ForceMode.VelocityChange);
+        }
+        else if (collision.transform.CompareTag("RightBox") && direction > 0)
+        {
+            DOTween.Sequence(DOTween.To(() =>
+                {
+                    return collisionVelocityRatio = 0.0f;
+                }, x => collisionVelocityRatio = x, 1.0f, GameManager.instance.CollisionFeedbackDuration).onComplete =
+                () => collisionVelocityRatio = 1.0f);
+            //test.onUpdate = () => { Debug.Log(collisionVelocityRatio); };
+            float ratio = Mathf.InverseLerp(0.0f, maxSpeed, body.velocity.magnitude);
+            body.AddForce(new Vector3(-GameManager.instance.CollisionChangeVelocity, 0.0f, 0.0f), ForceMode.VelocityChange);
         }
     }
 }
